@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { Suspense, useMemo } from 'react'
 import { PersonalizedPrice } from './personalized/PersonalizedPrice'
+import { Skeleton } from './personalized/Skeleton'
+import { PriceErrorBoundary } from './personalized/PriceErrorBoundary'
 import { Countdown } from './personalized/Countdown'
 import './style.css'
 
@@ -59,7 +61,20 @@ export function App({ promoState }: { promoState?: PromoState }) {
       </section>
 
       <section style={{ marginTop: 16 }}>
-        <PersonalizedPrice base={initial.basePrice} />
+        <PriceErrorBoundary>
+          <Suspense
+            fallback={
+              <div>
+                <strong>个性化价格：</strong>
+                <Skeleton width={80} height={16} />
+                <div style={{ marginTop: 6, fontSize: 12, color: '#64748b' }}>
+                  提示：在浏览器控制台运行 <code>localStorage.setItem('logged','1')</code> 再刷新，即可看到会员价生效。
+                </div>
+              </div>
+            }>
+            <PersonalizedPrice base={initial.basePrice} />
+          </Suspense>
+        </PriceErrorBoundary>
       </section>
 
       <footer>
