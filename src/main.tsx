@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PersonalizedPrice } from './personalized/PersonalizedPrice'
 import { Countdown } from './personalized/Countdown'
+import { on, off } from './bus'
 import './style.css'
 
 type PromoState = {
@@ -29,6 +30,21 @@ export function App({ promoState }: { promoState?: PromoState }) {
     return { productId: 'SKU', title: 'Demo', basePrice: 99, endAt: Date.now() + 60_000 }
   }, [promoState])
 
+  const [ssrPrice, setSsrPrice] = useState(initial.basePrice)
+  const [promoEnded, setPromoEnded] = useState(false)
+
+  useEffect(() => {
+    const handler = (p: number) => setSsrPrice(p)
+    on('price:update', handler)
+    return () => off('price:update', handler)
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setPromoEnded(true)
+    on('countdown:done', handler)
+    return () => off('countdown:done', handler)
+  }, [])
+
   return (
     <div className="container" data-promo data-product-id={initial.productId} data-title={initial.title}
       data-base-price={initial.basePrice} data-end-at={initial.endAt}>
@@ -42,7 +58,7 @@ export function App({ promoState }: { promoState?: PromoState }) {
           <div className="skeleton" style={{ height: 16, width: '40%' }} aria-hidden="true"></div>
           <div style={{ marginTop: 12 }}>
             {/* SSR shows safe base price; client may replace with personalized price */}
-            <div className="price" id="price-ssr">¥{initial.basePrice}</div>
+            <div className="price" id="price-ssr">¥{ssrPrice}</div>
           </div>
         </div>
       </div>
@@ -51,11 +67,18 @@ export function App({ promoState }: { promoState?: PromoState }) {
       <section style={{ marginTop: 16 }}>
         <strong>距离结束：</strong>{' '}
         <Countdown endAt={initial.endAt} />
+        {promoEnded && <span style={{ color: '#b91c1c', marginLeft: 8 }}>活动已结束</span>}
       </section>
 
       <section style={{ marginTop: 16 }}>
-        <promo-shadow data-cta="立即购买"></promo-shadow>
-        <span style={{ marginLeft: 12, color: 'var(--muted)' }}>（按钮样式隔离，支持 :host 与 CSS 变量桥接）</span>
+        {promoEnded ? (
+          <button disabled>活动已结束</button>
+        ) : (
+          <>
+            <promo-shadow data-cta="立即购买"></promo-shadow>
+            <span style={{ marginLeft: 12, color: 'var(--muted)' }}>（按钮样式隔离，支持 :host 与 CSS 变量桥接）</span>
+          </>
+        )}
       </section>
 
       <section style={{ marginTop: 16 }}>
@@ -96,4 +119,3 @@ if (typeof window !== 'undefined' && 'customElements' in window) {
     customElements.define('promo-shadow', PromoShadow);
   }
 }
-

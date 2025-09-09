@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { emit } from '../bus'
 
 export function PersonalizedPrice({ base }: { base: number }) {
   const [price, setPrice] = useState<number | null>(null)
@@ -17,15 +18,12 @@ export function PersonalizedPrice({ base }: { base: number }) {
       .then(r => r.json())
       .then(d => {
         setPrice(d.price)
-        // replace SSR price if improved
-        const el = document.getElementById('price-ssr')
-        if (el && typeof d.price === 'number') el.textContent = '¥' + d.price
-        console.log('replace:complete', { success: true })
+        emit('price:update', d.price)
       })
       .catch(e => {
         if (e.name === 'AbortError') setError('请求超时，已回退为 SSR 价格')
         else setError('请求失败，已回退为 SSR 价格')
-        console.log('replace:error', { error: e.message })
+        emit('price:error', e.message)
       })
       .finally(() => {
         clearTimeout(id)

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { emit } from '../bus'
 
 function pad(n: number) { return n.toString().padStart(2, '0') }
 
@@ -20,7 +21,7 @@ export function Countdown({ endAt }: { endAt: number }) {
   useEffect(() => {
     if (t.done) {
       // In real world, we could flip CTA or disable purchase
-      console.log('⏰ Promotion ended')
+      emit('countdown:done')
     }
   }, [t.done])
 
