@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import ReactDOM from 'react-dom/client'
+import { Button, Skeleton } from 'antd'
+import 'antd/dist/reset.css'
 import { PersonalizedPrice } from './personalized/PersonalizedPrice'
 import { Countdown } from './personalized/Countdown'
 import './style.css'
@@ -36,10 +39,10 @@ export function App({ promoState }: { promoState?: PromoState }) {
 
       {/* SSR skeleton for image/title/price */}
       <div className="row" style={{ marginTop: 8 }}>
-        <div className="skeleton" style={{ width: 120, height: 120, borderRadius: 12 }} aria-hidden="true"></div>
+        <Skeleton.Button active style={{ width: 120, height: 120, borderRadius: 12 }} />
         <div style={{ flex: 1 }}>
-          <div className="skeleton" style={{ height: 16, width: '70%', marginBottom: 8 }} aria-hidden="true"></div>
-          <div className="skeleton" style={{ height: 16, width: '40%' }} aria-hidden="true"></div>
+          <Skeleton.Input active style={{ height: 16, width: '70%', marginBottom: 8 }} />
+          <Skeleton.Input active style={{ height: 16, width: '40%' }} />
           <div style={{ marginTop: 12 }}>
             {/* SSR shows safe base price; client may replace with personalized price */}
             <div className="price" id="price-ssr">¥{initial.basePrice}</div>
@@ -79,15 +82,21 @@ if (typeof window !== 'undefined' && 'customElements' in window) {
     connectedCallback() {
       if (!this._shadow) {
         this._shadow = this.attachShadow({ mode: 'open' });
-        const btn = document.createElement('button');
-        (btn as any).part = 'button';
-        btn.textContent = this.getAttribute('data-cta') || '立即购买';
-        btn.addEventListener('click', () => {
-          alert('下单成功（示例）');
-        });
-        const style = document.createElement('style');
-        style.textContent = `:host{display:inline-block} button{}`;
-        this._shadow.append(style, btn);
+        const mount = document.createElement('div');
+        this._shadow.append(mount);
+        const btnText = this.getAttribute('data-cta') || '立即购买';
+        const root = ReactDOM.createRoot(mount);
+        root.render(
+          <Button
+            type="primary"
+            {...({ part: 'button ant-btn ant-btn-primary' } as any)}
+            onClick={() => {
+              alert('下单成功（示例）');
+            }}
+          >
+            {btnText}
+          </Button>
+        );
       }
     }
   }
