@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { PersonalizedPrice } from './personalized/PersonalizedPrice'
 import { Countdown } from './personalized/Countdown'
+import { mount } from './keepAlive'
 import './style.css'
 
 type PromoState = {
@@ -50,7 +51,7 @@ export function App({ promoState }: { promoState?: PromoState }) {
       {/* CSR: precise countdown & CTA inside Shadow DOM-like wrapper */}
       <section style={{ marginTop: 16 }}>
         <strong>距离结束：</strong>{' '}
-        <Countdown endAt={initial.endAt} />
+        {mount(<Countdown endAt={initial.endAt} />, 'countdown')}
       </section>
 
       <section style={{ marginTop: 16 }}>
@@ -59,7 +60,7 @@ export function App({ promoState }: { promoState?: PromoState }) {
       </section>
 
       <section style={{ marginTop: 16 }}>
-        <PersonalizedPrice base={initial.basePrice} />
+        {mount(<PersonalizedPrice base={initial.basePrice} />, 'price')}
       </section>
 
       <footer>
